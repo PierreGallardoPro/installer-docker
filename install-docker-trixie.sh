@@ -56,9 +56,7 @@ apt-get install -y -qq \
   ca-certificates \
   curl \
   gnupg \
-  lsb-release \
-  apt-transport-https \
-  software-properties-common
+  lsb-release
 log "Dépendances installées."
 
 # ── 3. Clé GPG officielle Docker ────────────────────────────────────────────
