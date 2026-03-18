@@ -1,0 +1,43 @@
+# ==============================================================================
+#  /etc/systemd/system/docker-firstboot.service
+#  Lance l'installation de Docker une seule fois au premier démarrage.
+#
+#  DÉPLOIEMENT :
+#  1. Copier install-docker-trixie.sh dans /usr/local/sbin/
+#     sudo cp install-docker-trixie.sh /usr/local/sbin/
+#     sudo chmod +x /usr/local/sbin/install-docker-trixie.sh
+#
+#  2. Copier ce fichier dans /etc/systemd/system/
+#     sudo cp docker-firstboot.service /etc/systemd/system/
+#
+#  3. Activer le service :
+#     sudo systemctl enable docker-firstboot.service
+#
+#  Le service s'exécutera au prochain (premier) démarrage,
+#  puis se désactivera automatiquement.
+# ==============================================================================
+
+[Unit]
+Description=Installation automatique de Docker CE au premier démarrage
+# Attendre que le réseau soit disponible avant de lancer
+After=network-online.target
+Wants=network-online.target
+# Ne pas interférer avec un Docker déjà présent
+ConditionPathExists=!/usr/bin/docker
+
+[Service]
+Type=oneshot
+# Rester actif jusqu'à la fin du script (important pour oneshot)
+RemainAfterExit=no
+ExecStart=/usr/local/sbin/install-docker-trixie.sh
+# Journalisation dans un fichier dédié
+StandardOutput=append:/var/log/docker-firstboot.log
+StandardError=append:/var/log/docker-firstboot.log
+# Délai avant lancement (laisse le réseau se stabiliser)
+ExecStartPre=/bin/sleep 5
+
+# Auto-désactivation après exécution réussie
+ExecStartPost=/bin/systemctl disable docker-firstboot.service
+
+[Install]
+WantedBy=multi-user.target
